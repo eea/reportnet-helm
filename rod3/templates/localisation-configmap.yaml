@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "rod3.fullname" . }}-locale
+data:
+  LANG: C.UTF-8
+  TZ: Europe/Copenhagen
+

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rod3.fullname" . }}
+  labels:
+    {{- include "rod3.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "rod3.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rod3.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "rod3.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+          - configMapRef:
+              name: {{ template "rod3.fullname" . }}-locale
+          env:
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "mariadb.secretName" . }}
+                key: mariadb-password
+          - name: CATALINA_OPTS
+            value: |
+              "-Dinitial.username=roug"
+              "-Dcas.service={{ .Values.serviceLocation }}"
+              "-Dcas.server.host={{ .Values.casEndpoint }}"
+              "-Dcas.url.suffix={{ .Values.casServiceName }}"
+              "-Ddb.driver=org.mariadb.jdbc.Driver"
+              "-Ddb.url=jdbc:mariadb://{{ include "mariadb.fullname" . }}/{{ .Values.db.name }}"
+              "-Ddb.username={{ .Values.db.user }}"
+              "-Ddb.password=$(MYSQL_PASSWORD)"
+              "-Ddeploy.contexts={{ .Values.deployContexts }}"
+              "-Ddeploy.dropfirst={{ .Values.deployDropfirst }}"
+          ports:
+            - name: tomcat
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: tomcat
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: tomcat
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

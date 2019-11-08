@@ -1,0 +1,135 @@
+# Default values for rod3.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: eeacms/rod
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+serviceLocation: https://rod.eionet.europa.eu
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+deployContexts: prod
+deployDropfirst: false
+casEndpoint: "https://webgate.ec.europa.eu/cas"
+casServiceName: "laxValidate"
+
+
+##
+## SERVICE
+##
+service:
+  type: ClusterIP
+  port: 8080
+
+##
+## Optional INGRESS
+##
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: rod.eionet.europa.eu
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - rod.eionet.europa.eu
+
+resources:
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests:
+  #   cpu: 100m
+    memory: 300Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+##
+## Common database parameters
+##
+db:
+  name: rod3
+  user: roduser
+  ## If the password is not specified, mariadb will generate a random password
+  ##
+  # password:
+
+##
+## MARIADB
+##
+## Create a database and a database user
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+##
+mariadb:
+  ## Whether to deploy a mariadb server to satisfy the applications database requirements.
+  ## To use an external database set this to false and configure the externalDatabase parameters.
+  enabled: true
+
+  image:
+    repository: mariadb
+    tag: 10.2.10
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  rootUser:
+    password:
+    forcePassword: false
+
+  persistence:
+    ## If true, use a Persistent Volume Claim, If false, use emptyDir
+    ##
+    enabled: true
+    annotations:
+    accessModes:
+    - ReadWriteOnce
+    size: 20Gi
+    # storageClass: "-"
+    storageClass: database
+
+  resources:
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    requests:
+    #   cpu: 100m
+      memory: 300Mi
+
+  service:
+    type: ClusterIP
+    clusterIP: None
+    port: 3306
+
