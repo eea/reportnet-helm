@@ -1,6 +1,6 @@
 # Helm charts
 
-To use them do a git clone, then do
+To use them do a git clone/pull, then do
 
 ```
 helm install hello --generate-name
@@ -11,3 +11,7 @@ To uninstall do:
 helm list
 helm uninstall hello-1574168482
 ```
+
+## Documentation
+
+* https://v3.helm.sh/docs/
