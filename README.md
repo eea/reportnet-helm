@@ -1,3 +1,5 @@
+**NOTE:** This repo has been replaced by [rn3-deploy-scripts](https://github.com/eea/rn3-deploy-scripts)
+
 # Helm charts
 
 To use them do a git clone/pull, then do
